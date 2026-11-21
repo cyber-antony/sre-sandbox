@@ -1,0 +1,30 @@
+---
+- name: Install isolated Netplan validation helper on bridge hosts
+  ansible.builtin.copy:
+    src: validate-netplan.sh
+    dest: /usr/local/sbin/sre-validate-netplan
+    owner: root
+    group: root
+    mode: "0755"
+  when: inventory_hostname in (groups['labs'] + groups['mainhosts'])
+
+- name: Configure APT proxy
+  ansible.builtin.copy:
+    dest: "{{ apt_proxy_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      Acquire::http::Proxy "{{ apt_proxy_url }}";
+      Acquire::https::Proxy "false";
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  # Reuse the APT cache until its validity period expires.
+
+- name: Install common base packages
+  ansible.builtin.apt:
+    name: "{{ common_host_packages }}"
+    state: present

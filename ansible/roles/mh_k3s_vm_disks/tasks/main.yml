@@ -1,0 +1,30 @@
+---
+- name: Ensure VM disk directory exists
+  ansible.builtin.file:
+    path: "{{ vm_disk_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Check base Ubuntu image exists
+  ansible.builtin.stat:
+    path: "{{ ubuntu_cloud_image_path }}"
+  register: base_image_stat
+
+- name: Fail if base Ubuntu image is missing
+  ansible.builtin.fail:
+    msg: "Base Ubuntu cloud image not found at {{ ubuntu_cloud_image_path }}"
+  when: not base_image_stat.stat.exists
+
+- name: Create qcow2 overlay disks for VMs
+  ansible.builtin.command:
+    cmd: >
+      qemu-img create -f {{ vm_disk_format }}
+      -F qcow2
+      -b {{ ubuntu_cloud_image_path }}
+      {{ vm_disk_dir }}/{{ item.name }}.qcow2
+      {{ item.disk_gb }}G
+    creates: "{{ vm_disk_dir }}/{{ item.name }}.qcow2"
+  loop: "{{ vms }}"
+  # Overlay disks reuse the base image without copying it for each VM.

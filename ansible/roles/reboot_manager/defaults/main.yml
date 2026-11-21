@@ -1,0 +1,7 @@
+---
+# Maximum time to wait for the host to reboot, in seconds.
+reboot_timeout_seconds: 600
+# Message shown to users before rebooting.
+reboot_message: "Reboot initiated by Ansible (reboot_manager role)"
+# Flush the reboot handler immediately instead of waiting for the play to end.
+reboot_flush_immediately: true

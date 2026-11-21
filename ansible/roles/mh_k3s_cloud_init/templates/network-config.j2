@@ -1,0 +1,22 @@
+version: 2
+ethernets:
+  cluster0:
+    match:
+{% if item.mac is defined %}
+      macaddress: "{{ item.mac }}"
+{% else %}
+      # Each node has a single Ethernet interface; libvirt can assign its MAC.
+      name: "e*"
+{% endif %}
+    set-name: cluster0
+    dhcp4: false
+    addresses:
+      - {{ item.ip }}/{{ cluster_vm_netmask_prefix }}
+    routes:
+      - to: default
+        via: {{ cluster_vm_gateway }}
+    nameservers:
+      addresses:
+{% for dns_ip in cluster_vm_dns %}
+        - {{ dns_ip }}
+{% endfor %}

@@ -1,0 +1,142 @@
+---
+- name: Provision MainHost Virtual Machine
+  hosts: labs
+  become: true
+  gather_facts: true
+
+  vars:
+    vm_name: "mainhost"
+    vm_ram_mb: "{{ site.mainhost.memory_mb }}"
+    vm_vcpus: "{{ site.mainhost.vcpus }}"
+    vm_mac: "{{ site.mainhost.mac | default('') }}"
+    vm_ip: "{{ site.mainhost.address }}"
+
+    base_image_path: "{{ site.images.directory }}/{{ site.images.filename }}"
+    target_image_path: "/var/lib/libvirt/images/{{ vm_name }}.qcow2"
+    seed_iso_path: "/var/lib/libvirt/images/{{ vm_name }}-seed.iso"
+
+    cloud_init_dir: "/var/lib/libvirt/cloud-init/{{ vm_name }}"
+    user_data_path: "{{ cloud_init_dir }}/user-data"
+    meta_data_path: "{{ cloud_init_dir }}/meta-data"
+
+    ssh_key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_ed25519.pub') }}"
+    apt_proxy: "{{ site.apt_proxy.url }}"
+
+  handlers:
+    - name: Rebuild mainhost seed ISO
+      ansible.builtin.shell: |
+        rm -f "{{ seed_iso_path }}"
+        cloud-localds "{{ seed_iso_path }}" "{{ user_data_path }}" "{{ meta_data_path }}"
+      changed_when: true
+
+  tasks:
+    - name: Ensure mainhost provisioning dependencies are present
+      ansible.builtin.apt:
+        name:
+          - python3-libvirt
+          - python3-lxml
+          - libvirt-clients
+          - cloud-image-utils
+          - qemu-utils
+        state: present
+        update_cache: true
+
+    - name: Check if mainhost VM is already defined
+      community.libvirt.virt:
+        command: list_vms
+      register: existing_vms
+
+    - name: Ensure cloud-init directory exists
+      ansible.builtin.file:
+        path: "{{ cloud_init_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Create qcow2 overlay image for mainhost
+      ansible.builtin.command: >
+        qemu-img create -f qcow2 -F qcow2 -b {{ base_image_path }} {{
+        target_image_path }} {{ site.mainhost.disk_gb }}G
+      args:
+        creates: "{{ target_image_path }}"
+
+    - name: Render mainhost cloud-init user-data
+      ansible.builtin.copy:
+        dest: "{{ user_data_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          #cloud-config
+          hostname: {{ vm_name }}
+          manage_etc_hosts: true
+          users:
+            - name: ansik
+              groups: [adm, sudo]
+              shell: /bin/bash
+              sudo: ALL=(ALL) NOPASSWD:ALL
+              lock_passwd: true
+              ssh_authorized_keys:
+                - {{ ssh_key }}
+          apt:
+            proxy: {{ apt_proxy }}
+          package_update: false
+          package_upgrade: false
+          packages:
+            - openssh-server
+            - sudo
+          runcmd:
+            - systemctl enable ssh
+      notify: Rebuild mainhost seed ISO
+
+    - name: Render mainhost cloud-init meta-data
+      ansible.builtin.copy:
+        dest: "{{ meta_data_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          instance-id: {{ vm_name }}-001
+          local-hostname: {{ vm_name }}
+      notify: Rebuild mainhost seed ISO
+
+    - name: Ensure seed ISO exists on first run
+      ansible.builtin.command: >
+        cloud-localds "{{ seed_iso_path }}" "{{ user_data_path }}" "{{
+        meta_data_path }}"
+      args:
+        creates: "{{ seed_iso_path }}"
+
+    - name: Flush handlers before VM creation
+      ansible.builtin.meta: flush_handlers
+
+    - name: Create mainhost VM with virt-install
+      ansible.builtin.command: >
+        virt-install --name {{ vm_name }} --memory {{ vm_ram_mb }} --vcpus {{
+        vm_vcpus }} --cpu host-passthrough --os-variant ubuntu24.04 --import
+        --disk path={{ target_image_path
+        }},format=qcow2,bus=virtio,cache=none,discard=unmap --disk path={{
+        seed_iso_path }},device=cdrom --network bridge={{ site.lab.bridge }},model=virtio{{
+        ',mac=' ~ vm_mac if vm_mac | length > 0 else '' }} --graphics none --serial pty --console pty,target_type=serial
+        --rng /dev/urandom --noautoconsole
+      when: vm_name not in existing_vms.list_vms
+      register: virt_install_result
+
+    - name: Check whether mainhost autostart is already enabled
+      ansible.builtin.stat:
+        path: "/etc/libvirt/qemu/autostart/{{ vm_name }}.xml"
+      register: mainhost_autostart_stat
+
+    - name: Enable mainhost autostart
+      ansible.builtin.command:
+        cmd: "virsh autostart {{ vm_name }}"
+      when: not mainhost_autostart_stat.stat.exists
+
+    - name: Wait for mainhost SSH to become reachable
+      ansible.builtin.wait_for:
+        host: "{{ vm_ip }}"
+        port: 22
+        delay: 10
+        timeout: 300
+      when: virt_install_result.changed | default(false)

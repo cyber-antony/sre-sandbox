@@ -1,0 +1,24 @@
+all:
+  children:
+    labs:
+      hosts:
+        lab:
+          ansible_host: "{{ site.lab.address }}"
+
+    mainhosts:
+      hosts:
+        mainhost:
+          ansible_host: "{{ site.mainhost.address }}"
+
+    k3s:
+      children:
+        control_plane:
+          hosts:
+            cc1:
+              ansible_host: "{{ (site.cluster.nodes | selectattr('name', 'equalto', 'cc1') | first).ip }}"
+        workers:
+          hosts:
+            wk1:
+              ansible_host: "{{ (site.cluster.nodes | selectattr('name', 'equalto', 'wk1') | first).ip }}"
+            wk2:
+              ansible_host: "{{ (site.cluster.nodes | selectattr('name', 'equalto', 'wk2') | first).ip }}"

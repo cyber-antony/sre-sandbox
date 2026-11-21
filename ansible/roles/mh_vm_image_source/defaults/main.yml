@@ -1,0 +1,5 @@
+---
+ubuntu_cloud_image_url: "{{ site.images.url }}"
+ubuntu_cloud_image_filename: "{{ site.images.filename }}"
+ubuntu_cloud_image_dir: "{{ site.images.mount }}"
+ubuntu_cloud_image_path: "{{ ubuntu_cloud_image_dir }}/{{ ubuntu_cloud_image_filename }}"

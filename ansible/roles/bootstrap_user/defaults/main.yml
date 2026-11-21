@@ -1,0 +1,4 @@
+bootstrap_user_name: ansik
+bootstrap_user_group: ansik
+bootstrap_user_shell: /bin/bash
+bootstrap_user_ssh_pubkey_file: "{{ lookup('env', 'HOME') + '/.ssh/id_ed25519.pub' }}"

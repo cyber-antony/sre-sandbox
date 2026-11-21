@@ -1,0 +1,23 @@
+---
+- name: Ensure Ubuntu image cache directory exists
+  ansible.builtin.file:
+    path: "{{ ubuntu_cloud_image_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Check whether Ubuntu cloud image is already cached
+  ansible.builtin.stat:
+    path: "{{ ubuntu_cloud_image_path }}"
+  register: ubuntu_cloud_image_stat
+  # Check the cache to avoid downloading an existing image.
+
+- name: Download Ubuntu cloud image
+  ansible.builtin.get_url:
+    url: "{{ ubuntu_cloud_image_url }}"
+    dest: "{{ ubuntu_cloud_image_path }}"
+    mode: "0644"
+    timeout: 60
+  when: not ubuntu_cloud_image_stat.stat.exists
+  # Cache the image locally to avoid repeated downloads on a slow connection.

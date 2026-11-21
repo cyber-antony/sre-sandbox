@@ -1,0 +1,49 @@
+---
+- name: Check installed proxy packages without using APT
+  ansible.builtin.command:
+    argv:
+      - dpkg-query
+      - --show
+      - --showformat=${db:Status-Status}
+      - "{{ item }}"
+    expand_argument_vars: false
+  loop: "{{ lab_apt_proxy_packages }}"
+  register: lab_apt_proxy_package_states
+  changed_when: false
+  check_mode: false
+  failed_when: lab_apt_proxy_package_states.rc not in [0, 1]
+
+- name: Find missing proxy packages
+  ansible.builtin.set_fact:
+    lab_apt_proxy_missing_packages: >-
+      {{ lab_apt_proxy_package_states.results
+         | rejectattr('stdout', 'equalto', 'installed')
+         | map(attribute='item') | list }}
+
+- name: Refresh package lists through direct access for proxy bootstrap
+  ansible.builtin.command:
+    argv: "{{ lab_apt_proxy_direct_apt + ['update'] }}"
+  changed_when: false
+  when: lab_apt_proxy_missing_packages | length > 0
+
+- name: Install missing proxy packages through direct access
+  # Command-line options bypass an existing client config pointing at this proxy.
+  ansible.builtin.command:
+    argv: "{{ lab_apt_proxy_direct_apt + ['install', '--yes'] + lab_apt_proxy_missing_packages }}"
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  when: lab_apt_proxy_missing_packages | length > 0
+
+- name: Ensure apt-cacher-ng is enabled and running
+  ansible.builtin.systemd:
+    name: apt-cacher-ng
+    state: started
+    enabled: true
+  when: not ansible_check_mode or lab_apt_proxy_missing_packages | length == 0
+
+- name: Wait for the local APT proxy to accept connections
+  ansible.builtin.wait_for:
+    host: "{{ site.lab.address }}"
+    port: 3142
+    timeout: 60
+  when: not ansible_check_mode

@@ -1,0 +1,13 @@
+---
+- name: Validate configuration without connecting to the lab
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Check addresses, networks, identities, and storage paths
+      ansible.builtin.command:
+        argv:
+          - "{{ ansible_playbook_python }}"
+          - "{{ playbook_dir }}/../../scripts/validate_environment.py"
+        stdin: "{{ {'site': site} | to_json }}"
+      changed_when: false

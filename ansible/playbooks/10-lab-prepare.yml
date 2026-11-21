@@ -1,0 +1,31 @@
+---
+- name: Prepare physical lab host
+  hosts: labs
+  become: true
+  gather_facts: true
+
+  roles:
+    - role: lab_apt_proxy
+      tags: [ lab_prepare, apt_proxy ]
+      when: site.apt_proxy.manage_on_lab | default(false) | bool
+
+    - role: common
+      tags: [ lab_prepare, common ]
+
+    - role: system_update
+      tags: [ lab_prepare, update ]
+
+    - role: lab_directories
+      tags: [ lab_prepare, dirs ]
+
+    - role: lab_nfs_server
+      tags: [ lab_prepare, nfs ]
+
+    - role: lab_kvm_host
+      tags: [ lab_prepare, kvm ]
+
+    - role: lab_bridge
+      tags: [ lab_prepare, bridge ]
+
+    - role: lab_vm_image_cache
+      tags: [ lab_prepare, image_cache ]

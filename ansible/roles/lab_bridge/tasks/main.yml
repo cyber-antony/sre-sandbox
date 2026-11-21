@@ -1,0 +1,28 @@
+- name: Render netplan for lab bridge (DHCP)
+  ansible.builtin.copy:
+    dest: "{{ lab_bridge_netplan_file }}"
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          {{ lab_bridge_uplink_interface }}:
+            dhcp4: false
+            dhcp6: false
+        bridges:
+          {{ lab_bridge_name }}:
+            interfaces:
+              - {{ lab_bridge_uplink_interface }}
+            dhcp4: true
+            dhcp6: false
+            routes:
+              - to: {{ lab_cluster_route_network }}
+                via: {{ lab_cluster_route_via }}
+            parameters:
+              stp: false
+              forward-delay: 0
+    validate: "/usr/local/sbin/sre-validate-netplan %s"
+  notify: Apply netplan

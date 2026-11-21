@@ -1,0 +1,29 @@
+---
+- name: Ensure bootstrap group exists
+  ansible.builtin.group:
+    name: "{{ bootstrap_user_group }}"
+    state: present
+
+- name: Create bootstrap user
+  ansible.builtin.user:
+    name: "{{ bootstrap_user_name }}"
+    groups: "sudo,{{ bootstrap_user_group }}"
+    append: true
+    shell: "{{ bootstrap_user_shell }}"
+    create_home: true
+    state: present
+
+- name: Add authorized key for bootstrap user
+  ansible.posix.authorized_key:
+    user: "{{ bootstrap_user_name }}"
+    state: present
+    key: "{{ lookup('file', bootstrap_user_ssh_pubkey_file) }}"
+
+- name: Allow bootstrap user passwordless sudo
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ bootstrap_user_name }}"
+    content: "{{ bootstrap_user_name }} ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: "/usr/sbin/visudo -cf %s"

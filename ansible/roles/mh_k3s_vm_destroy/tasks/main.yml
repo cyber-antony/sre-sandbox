@@ -1,0 +1,46 @@
+---
+- name: Check current VM power state before destroy
+  ansible.builtin.command:
+    cmd: "virsh domstate {{ item.name }}"
+  register: mh_k3s_vm_destroy_states
+  failed_when: false
+  changed_when: false
+  loop: "{{ vms }}"
+
+- name: Force stop running VMs before cleanup
+  ansible.builtin.command:
+    cmd: "virsh destroy {{ item.item.name }}"
+  register: mh_k3s_vm_destroy_force_stop
+  failed_when: false
+  changed_when: mh_k3s_vm_destroy_force_stop.rc == 0
+  loop: "{{ mh_k3s_vm_destroy_states.results }}"
+  when: item.stdout is search('running')
+
+- name: Check whether VM definitions exist
+  ansible.builtin.command:
+    cmd: "virsh dominfo {{ item.name }}"
+  register: mh_k3s_vm_dominfo
+  failed_when: false
+  changed_when: false
+  loop: "{{ vms }}"
+
+- name: Undefine VMs
+  ansible.builtin.command:
+    cmd: "virsh undefine {{ item.item.name }}"
+  register: mh_k3s_vm_undefine
+  failed_when: false
+  changed_when: mh_k3s_vm_undefine.rc == 0
+  loop: "{{ mh_k3s_vm_dominfo.results }}"
+  when: item.rc == 0
+
+- name: Remove VM overlay disks
+  ansible.builtin.file:
+    path: "{{ vm_disk_dir }}/{{ item.name }}.qcow2"
+    state: absent
+  loop: "{{ vms }}"
+
+- name: Remove VM cloud-init directories
+  ansible.builtin.file:
+    path: "{{ cloud_init_dir }}/{{ item.name }}"
+    state: absent
+  loop: "{{ vms }}"

@@ -1,0 +1,14 @@
+lab_nfs_server_packages:
+  - nfs-kernel-server
+
+lab_nfs_exports:
+  - path: "{{ site.images.directory }}"
+    client: "{{ site.lab.lan_cidr }}"
+    options: ro,sync,no_subtree_check
+
+  - path: "{{ site.postgres.directory }}"
+    client: "{{ site.cluster.cidr }}"
+    options: rw,sync,no_subtree_check,no_root_squash
+
+lab_nfs_general_directories:
+  - "{{ site.images.directory }}"

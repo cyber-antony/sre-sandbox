@@ -1,0 +1,9 @@
+---
+lab_root_dir: "{{ site.mainhost.runtime_dir }}"
+
+ubuntu_cloud_image_filename: "{{ site.images.filename }}"
+ubuntu_cloud_image_dir: "{{ site.images.mount }}"
+ubuntu_cloud_image_path: "{{ ubuntu_cloud_image_dir }}/{{ ubuntu_cloud_image_filename }}"
+
+vm_disk_dir: "{{ lab_root_dir }}/libvirt/vm-disks"
+vm_disk_format: qcow2

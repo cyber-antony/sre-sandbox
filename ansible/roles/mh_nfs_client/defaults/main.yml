@@ -1,0 +1,4 @@
+nfs_server: "{{ site.lab.address }}"
+nfs_export: "{{ site.images.directory }}"
+nfs_mount: "{{ site.images.mount }}"
+nfs_opts: "defaults,_netdev"

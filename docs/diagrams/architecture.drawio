@@ -1,0 +1,167 @@
+<mxfile host="app.diagrams.net" agent="SRE Sandbox" version="24.7.17" type="device" compressed="false">
+  <diagram id="sre-page-1" name="01 - Virtualization layers">
+    <mxGraphModel dx="1660" dy="1240" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1660" pageHeight="1240" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="SRE Sandbox | Machines and disks" style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#f8fafc;strokeColor=#f8fafc;fontColor=#0f172a;fontFamily=Helvetica;fontSize=26;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="25" width="1580" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Reference layout; configure sizes and paths in your environment | Solid boundaries show nesting; dashed arrows show NFS access." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#f8fafc;strokeColor=#f8fafc;fontColor=#0f172a;fontFamily=Helvetica;fontSize=16;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="1580" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="lab" value="L0 | lab - physical KVM/libvirt host" style="swimlane;startSize=44;horizontal=1;collapsible=0;fontStyle=1;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#eef2f7;strokeColor=#64748b;fontColor=#0f172a;fontFamily=Helvetica;fontSize=19;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="150" width="1580" height="1050" as="geometry" />
+        </mxCell>
+        <mxCell id="store" value="Physical host filesystem / services" style="swimlane;startSize=44;horizontal=1;collapsible=0;fontStyle=1;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffffff;strokeColor=#94a3b8;fontColor=#0f172a;fontFamily=Helvetica;fontSize=17;strokeWidth=1.5;" vertex="1" parent="lab">
+          <mxGeometry x="25" y="70" width="440" height="840" as="geometry" />
+        </mxCell>
+        <mxCell id="base" value="Persistent base image&#10;/srv/vm-images&#10;ubuntu-24.04-server-cloudimg-amd64.img&#10;Shared backing file; not a VM disk copy." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#dcfce7;strokeColor=#16a34a;fontColor=#0f172a;fontFamily=Helvetica;fontSize=13;strokeWidth=1.5;" vertex="1" parent="store">
+          <mxGeometry x="20" y="60" width="400" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="mhfile" value="Mainhost root disk | 120G virtual&#10;/var/lib/libvirt/images/&#10;mainhost.qcow2&#10;Writable overlay backed by the base image." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffedd5;strokeColor=#ea580c;fontColor=#0f172a;fontFamily=Helvetica;fontSize=13;strokeWidth=1.5;" vertex="1" parent="store">
+          <mxGeometry x="20" y="240" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="mhseed" value="Mainhost cloud-init CD-ROM&#10;/var/lib/libvirt/images/mainhost-seed.iso&#10;Source: /var/lib/libvirt/cloud-init/mainhost" style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#f1f5f9;strokeColor=#94a3b8;fontColor=#0f172a;fontFamily=Helvetica;fontSize=13;strokeWidth=1.5;" vertex="1" parent="store">
+          <mxGeometry x="20" y="400" width="400" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="pg" value="Persistent PostgreSQL data (NFS RW)&#10;/srv/postgres/taskmanager-postgres&#10;Physical storage stays on lab.&#10;PV / PVC declared capacity: 5Gi." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#dcfce7;strokeColor=#16a34a;fontColor=#0f172a;fontFamily=Helvetica;fontSize=13;strokeWidth=1.5;" vertex="1" parent="store">
+          <mxGeometry x="20" y="550" width="400" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="apt" value="APT package cache&#10;apt-cacher-ng outside disposable VMs&#10;Endpoint from site.apt_proxy.url" style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#f1f5f9;strokeColor=#94a3b8;fontColor=#0f172a;fontFamily=Helvetica;fontSize=13;strokeWidth=1.5;" vertex="1" parent="store">
+          <mxGeometry x="20" y="710" width="400" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="mh" value="L1 | mainhost - infrastructure VM" style="swimlane;startSize=44;horizontal=1;collapsible=0;fontStyle=1;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#eff6ff;strokeColor=#2563eb;fontColor=#0f172a;fontFamily=Helvetica;fontSize=17;strokeWidth=1.5;" vertex="1" parent="lab">
+          <mxGeometry x="505" y="70" width="1050" height="900" as="geometry" />
+        </mxCell>
+        <mxCell id="mhmeta" value="Nested KVM/libvirt | 4 vCPUs | 6656 MiB RAM&#10;LAN bridge on lab -&gt; mainhost -&gt; internal bridge brk3s -&gt; cluster VMs" style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#eff6ff;strokeColor=#eff6ff;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="mh">
+          <mxGeometry x="25" y="60" width="1000" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="mhfs" value="Guest filesystem inside mainhost.qcow2&#10;Node disk files: /opt/sre-lab/libvirt/vm-disks/&#10;cc1.qcow2 | wk1.qcow2 | wk2.qcow2 (each 30G virtual in this configuration)&#10;Node cloud-init: /opt/sre-lab/libvirt/cloud-init/&lt;node&gt;/seed.iso&#10;These files are stored inside mainhost, not directly alongside mainhost.qcow2 on lab." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffedd5;strokeColor=#ea580c;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="mh">
+          <mxGeometry x="25" y="145" width="1000" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="mount" value="Read-only NFS mount: /mnt/vm-images&#10;ubuntu-24.04-server-cloudimg-amd64.img | Same base image exported by lab; node overlays depend on this mount." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#dcfce7;strokeColor=#16a34a;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="mh">
+          <mxGeometry x="25" y="320" width="1000" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cc1" value="L2 | cc1 - control plane" style="swimlane;startSize=44;horizontal=1;collapsible=0;fontStyle=1;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffffff;strokeColor=#60a5fa;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="mh">
+          <mxGeometry x="25" y="445" width="315" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="cc1meta" value="2 vCPUs | 1500 MiB RAM&#10;k3s server" style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffffff;strokeColor=#ffffff;fontColor=#0f172a;fontFamily=Helvetica;fontSize=13;strokeWidth=1.5;" vertex="1" parent="cc1">
+          <mxGeometry x="15" y="55" width="285" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="cc1root" value="Virtual root disk | 30G&#10;Writable qcow2 overlay&#10;File lives in mainhost's filesystem." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffedd5;strokeColor=#ea580c;fontColor=#0f172a;fontFamily=Helvetica;fontSize=13;strokeWidth=1.5;" vertex="1" parent="cc1">
+          <mxGeometry x="15" y="125" width="285" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="wk1" value="L2 | wk1 - worker" style="swimlane;startSize=44;horizontal=1;collapsible=0;fontStyle=1;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffffff;strokeColor=#60a5fa;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="mh">
+          <mxGeometry x="355" y="445" width="315" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="wk1meta" value="2 vCPUs | 1500 MiB RAM&#10;k3s agent" style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffffff;strokeColor=#ffffff;fontColor=#0f172a;fontFamily=Helvetica;fontSize=13;strokeWidth=1.5;" vertex="1" parent="wk1">
+          <mxGeometry x="15" y="55" width="285" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="wk1root" value="Virtual root disk | 30G&#10;Writable qcow2 overlay&#10;File lives in mainhost's filesystem." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffedd5;strokeColor=#ea580c;fontColor=#0f172a;fontFamily=Helvetica;fontSize=13;strokeWidth=1.5;" vertex="1" parent="wk1">
+          <mxGeometry x="15" y="125" width="285" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="wk2" value="L2 | wk2 - worker" style="swimlane;startSize=44;horizontal=1;collapsible=0;fontStyle=1;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffffff;strokeColor=#60a5fa;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="mh">
+          <mxGeometry x="685" y="445" width="315" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="wk2meta" value="2 vCPUs | 1500 MiB RAM&#10;k3s agent" style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffffff;strokeColor=#ffffff;fontColor=#0f172a;fontFamily=Helvetica;fontSize=13;strokeWidth=1.5;" vertex="1" parent="wk2">
+          <mxGeometry x="15" y="55" width="285" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="wk2root" value="Virtual root disk | 30G&#10;Writable qcow2 overlay&#10;File lives in mainhost's filesystem." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffedd5;strokeColor=#ea580c;fontColor=#0f172a;fontFamily=Helvetica;fontSize=13;strokeWidth=1.5;" vertex="1" parent="wk2">
+          <mxGeometry x="15" y="125" width="285" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="workload" value="Kubernetes workload | PostgreSQL can be scheduled on a cluster node&#10;Container path: /var/lib/postgresql/data  |  PGDATA: .../pgdata&#10;PV/PVC -&gt; NFS export on lab, subdirectory taskmanager-postgres.&#10;Database files are outside mainhost and outside the node root disks." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#dcfce7;strokeColor=#16a34a;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="mh">
+          <mxGeometry x="25" y="720" width="1000" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Green = persistent / shared data    Orange = writable VM overlays    Grey = cloud-init or host services&#10;Physical drive models, device names, and host OS disk capacity are not defined by the repository." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#eef2f7;strokeColor=#eef2f7;fontColor=#0f172a;fontFamily=Helvetica;fontSize=13;strokeWidth=1.5;" vertex="1" parent="lab">
+          <mxGeometry x="25" y="980" width="1530" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="nfsbase" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#3b82f6;fontSize=13;fontColor=#3b82f6;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.496;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="base" target="mount">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="515" y="342" />
+              <mxPoint x="515" y="585" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nfsdata" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#3b82f6;fontSize=13;fontColor=#3b82f6;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.496;entryX=0.0;entryY=0.4962962962962963;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="pg" target="workload">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="520" y="832" />
+              <mxPoint x="520" y="1007" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="sre-page-2" name="02 - Disk dependencies and lifetime">
+    <mxGraphModel dx="1660" dy="1240" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1660" pageHeight="1240" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="SRE Sandbox | Disk dependencies and lifetime" style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#f8fafc;strokeColor=#f8fafc;fontColor=#0f172a;fontFamily=Helvetica;fontSize=26;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="25" width="1580" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Purple arrows: overlay -&gt; backing file. Blue dashed arrows: NFS. Grey arrow: filesystem containment." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#f8fafc;strokeColor=#f8fafc;fontColor=#0f172a;fontFamily=Helvetica;fontSize=16;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="1580" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="base" value="L0 / lab | persistent base image&#10;/srv/vm-images/ubuntu-24.04-server-cloudimg-amd64.img&#10;Used locally for mainhost and remotely for the cluster nodes.&#10;Do not remove or replace while dependent overlays are in use." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#dcfce7;strokeColor=#16a34a;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="550" y="170" width="580" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="overlay" value="L0 file / L1 root disk&#10;/var/lib/libvirt/images/mainhost.qcow2&#10;120G virtual; writable overlay&#10;Its guest filesystem contains the node disk files." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffedd5;strokeColor=#ea580c;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="70" y="440" width="500" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="mount" value="L1 / mainhost | read-only NFS mount&#10;/mnt/vm-images/ubuntu-24.04-server-cloudimg-amd64.img&#10;NFS view of the same physical base file on lab." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#dcfce7;strokeColor=#16a34a;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="830" y="440" width="730" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="nodes" value="L1 files / L2 root disks&#10;/opt/sre-lab/libvirt/vm-disks/&#10;cc1.qcow2 | wk1.qcow2 | wk2.qcow2&#10;Each node overlay refers to the base image at the mounted NFS path.&#10;Each has its own cloud-init seed.iso; seed ISOs are not backing images." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#ffedd5;strokeColor=#ea580c;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="830" y="700" width="730" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="postgres" value="L0 / lab | PostgreSQL persistent files&#10;/srv/postgres/taskmanager-postgres&#10;Independent of mainhost and node root disks.&#10;PV reclaim policy: Retain." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#dcfce7;strokeColor=#16a34a;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="70" y="920" width="500" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="pod" value="Kubernetes PostgreSQL container&#10;PV/PVC mounts the NFS subdirectory.&#10;Scheduling does not change the physical storage location." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#eff6ff;strokeColor=#2563eb;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="830" y="980" width="730" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="notes" value="Deleting mainhost.qcow2 also loses its nested VM disk files. Deleting node overlays loses node-local state.&#10;PostgreSQL files and the base image remain on lab. Virtual disk capacities are not preallocated physical usage." style="rounded=1;arcSize=10;html=0;whiteSpace=wrap;align=left;verticalAlign=top;spacingLeft=16;spacingTop=14;fillColor=#f1f5f9;strokeColor=#94a3b8;fontColor=#0f172a;fontFamily=Helvetica;fontSize=14;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1140" width="1490" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="localbacking" value="local backing file" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#7c3aed;fontSize=13;fontColor=#7c3aed;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0.0;entryX=0.25;entryY=1.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="overlay" target="base">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="320" y="350" />
+              <mxPoint x="695" y="350" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nfsmount" value="read-only NFS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#3b82f6;fontSize=13;fontColor=#3b82f6;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0.0;entryX=0.75;entryY=1.0;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="mount" target="base">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1195" y="350" />
+              <mxPoint x="985" y="350" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nodebacking" value="node backing file" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#7c3aed;fontSize=13;fontColor=#7c3aed;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0.0;entryX=0.5;entryY=1.0;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="nodes" target="mount">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="contains" value="contains files" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#64748b;fontSize=13;fontColor=#64748b;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.4967741935483871;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" edge="1" parent="1" source="overlay" target="nodes">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="690" y="517" />
+              <mxPoint x="690" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="data" value="NFS data writes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#3b82f6;fontSize=13;fontColor=#3b82f6;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.5;entryX=1.0;entryY=0.7586206896551724;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=8 5;" edge="1" parent="1" source="pod" target="postgres">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

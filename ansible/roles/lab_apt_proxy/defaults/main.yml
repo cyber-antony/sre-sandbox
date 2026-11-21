@@ -1,0 +1,13 @@
+---
+lab_apt_proxy_packages:
+  - apt-cacher-ng
+
+# Bootstrap must work even when an old APT config points at a stopped proxy.
+lab_apt_proxy_direct_apt:
+  - apt-get
+  - -o
+  - Acquire::http::Proxy=DIRECT
+  - -o
+  - Acquire::https::Proxy=DIRECT
+  - -o
+  - DPkg::Lock::Timeout=60

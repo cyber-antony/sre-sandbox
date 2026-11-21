@@ -1,0 +1,27 @@
+#cloud-config
+hostname: {{ item.name }}
+manage_etc_hosts: true
+
+users:
+  - name: ansik
+    gecos: Ansible technical user
+    groups: [adm, sudo]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    ssh_authorized_keys:
+      - {{ lookup('file', ssh_pubkey_file) }}
+
+packages:
+  - openssh-server
+  - sudo
+  - qemu-guest-agent
+
+apt:
+  proxy: {{ site.apt_proxy.url }}
+
+package_update: false
+package_upgrade: false
+
+ssh_pwauth: false
+disable_root: true

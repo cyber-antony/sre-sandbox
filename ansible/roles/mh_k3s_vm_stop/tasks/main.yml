@@ -1,0 +1,48 @@
+---
+- name: Check current VM power state
+  ansible.builtin.command:
+    cmd: "virsh domstate {{ item.name }}"
+  register: mh_k3s_vm_states
+  failed_when: false
+  changed_when: false
+  loop: "{{ vms }}"
+
+- name: Request graceful shutdown for running VMs
+  ansible.builtin.command:
+    cmd: "virsh shutdown {{ item.item.name }}"
+  register: mh_k3s_vm_shutdown
+  failed_when: false
+  changed_when: mh_k3s_vm_shutdown.rc == 0
+  loop: "{{ mh_k3s_vm_states.results }}"
+  when: item.stdout is search('running')
+
+- name: Wait until VMs are shut off
+  ansible.builtin.command:
+    cmd: "virsh domstate {{ item.name }}"
+  register: mh_k3s_vm_wait_result
+  changed_when: false
+  failed_when: false
+  retries: 12
+  delay: 5
+  until: mh_k3s_vm_wait_result.stdout is search('shut off')
+  loop: "{{ vms }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ignore_errors: true
+
+- name: Refresh VM power state after graceful shutdown wait
+  ansible.builtin.command:
+    cmd: "virsh domstate {{ item.name }}"
+  register: mh_k3s_vm_final_states
+  failed_when: false
+  changed_when: false
+  loop: "{{ vms }}"
+
+- name: Force stop VMs still running
+  ansible.builtin.command:
+    cmd: "virsh destroy {{ item.item.name }}"
+  register: mh_k3s_vm_force_stop
+  failed_when: false
+  changed_when: mh_k3s_vm_force_stop.rc == 0
+  loop: "{{ mh_k3s_vm_final_states.results }}"
+  when: item.stdout is search('running')

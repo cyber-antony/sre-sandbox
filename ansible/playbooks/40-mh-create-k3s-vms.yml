@@ -1,0 +1,19 @@
+---
+- name: Create cluster VMs on main host
+  hosts: mainhost
+  become: true
+  gather_facts: true
+  serial: 1
+
+  roles:
+    - role: mh_k3s_cloud_init
+      tags: [ create_vms, cloud_init ]
+
+    - role: mh_k3s_vm_disks
+      tags: [ create_vms, vm_disks ]
+
+    - role: mh_k3s_vm_create
+      tags: [ create_vms, libvirt_vms ]
+
+    - role: reboot_manager
+      tags: [ create_vms, reboot ]

@@ -1,0 +1,4 @@
+---
+swapfile_path: /swapfile
+swapfile_size_mb: 8096
+swapfile_swappiness: 10

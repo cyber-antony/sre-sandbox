@@ -1,0 +1,42 @@
+---
+- name: Check current mainhost power state
+  ansible.builtin.command:
+    cmd: "virsh domstate {{ lab_mainhost_name }}"
+  register: lab_mainhost_state
+  failed_when: false
+  changed_when: false
+
+- name: Request graceful shutdown of mainhost
+  ansible.builtin.command:
+    cmd: "virsh shutdown {{ lab_mainhost_name }}"
+  register: lab_mainhost_shutdown
+  failed_when: false
+  changed_when: lab_mainhost_shutdown.rc == 0
+  when: lab_mainhost_state.stdout is search('running')
+
+- name: Wait until mainhost is shut off
+  ansible.builtin.command:
+    cmd: "virsh domstate {{ lab_mainhost_name }}"
+  register: lab_mainhost_wait_result
+  changed_when: false
+  failed_when: false
+  retries: 12
+  delay: 5
+  until: lab_mainhost_wait_result.stdout is search('shut off')
+  ignore_errors: true
+  when: lab_mainhost_state.stdout is search('running')
+
+- name: Refresh mainhost power state after graceful shutdown wait
+  ansible.builtin.command:
+    cmd: "virsh domstate {{ lab_mainhost_name }}"
+  register: lab_mainhost_final_state
+  failed_when: false
+  changed_when: false
+
+- name: Force stop mainhost if still running
+  ansible.builtin.command:
+    cmd: "virsh destroy {{ lab_mainhost_name }}"
+  register: lab_mainhost_force_stop
+  failed_when: false
+  changed_when: lab_mainhost_force_stop.rc == 0
+  when: lab_mainhost_final_state.stdout is search('running')

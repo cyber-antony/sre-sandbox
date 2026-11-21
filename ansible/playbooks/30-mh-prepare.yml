@@ -1,0 +1,27 @@
+---
+- name: Prepare mainhost
+  hosts: mainhosts
+  become: true
+  gather_facts: true
+
+  roles:
+    - role: common
+      tags: [ mh_prepare, common ]
+
+    - role: system_update
+      tags: [ lab_prepare, update ]
+
+    - role: mh_directories
+      tags: [ mh_prepare, dirs ]
+
+    - role: mh_swapfile
+      tags: [ mh_prepare, swap ]
+
+    - role: mh_kvm_host
+      tags: [ mh_prepare, kvm ]
+
+    - role: mh_cluster_network
+      tags: [ mh_prepare, network ]
+
+    - role: mh_nfs_client
+      tags: [ mh_prepare, nfs_client ]

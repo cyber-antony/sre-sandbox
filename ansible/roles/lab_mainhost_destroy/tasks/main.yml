@@ -1,0 +1,45 @@
+---
+- name: Check current mainhost power state before destroy
+  ansible.builtin.command:
+    cmd: "virsh domstate {{ lab_mainhost_name }}"
+  register: lab_mainhost_destroy_state
+  failed_when: false
+  changed_when: false
+
+- name: Force stop mainhost before cleanup
+  ansible.builtin.command:
+    cmd: "virsh destroy {{ lab_mainhost_name }}"
+  register: lab_mainhost_destroy_force_stop
+  failed_when: false
+  changed_when: lab_mainhost_destroy_force_stop.rc == 0
+  when: lab_mainhost_destroy_state.stdout is search('running')
+
+- name: Check whether mainhost definition exists
+  ansible.builtin.command:
+    cmd: "virsh dominfo {{ lab_mainhost_name }}"
+  register: lab_mainhost_dominfo
+  failed_when: false
+  changed_when: false
+
+- name: Undefine mainhost
+  ansible.builtin.command:
+    cmd: "virsh undefine {{ lab_mainhost_name }}"
+  register: lab_mainhost_undefine
+  failed_when: false
+  changed_when: lab_mainhost_undefine.rc == 0
+  when: lab_mainhost_dominfo.rc == 0
+
+- name: Remove mainhost overlay disk
+  ansible.builtin.file:
+    path: "{{ lab_mainhost_disk_path }}"
+    state: absent
+
+- name: Remove mainhost seed ISO
+  ansible.builtin.file:
+    path: "{{ lab_mainhost_seed_iso_path }}"
+    state: absent
+
+- name: Remove mainhost cloud-init directory
+  ansible.builtin.file:
+    path: "{{ lab_mainhost_cloud_init_dir }}"
+    state: absent

@@ -1,0 +1,6 @@
+---
+lab_root_dir: "{{ site.mainhost.runtime_dir }}"
+cloud_init_dir: "{{ lab_root_dir }}/libvirt/cloud-init"
+ssh_pubkey_file: "{{ lookup('env', 'HOME') + '/.ssh/id_ed25519.pub' }}"
+cluster_bridge_name: "{{ site.cluster.bridge }}"
+cluster_vm_netmask_prefix: "{{ site.cluster.cidr.split('/')[1] }}"

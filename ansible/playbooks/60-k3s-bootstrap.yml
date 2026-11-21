@@ -1,0 +1,18 @@
+---
+- name: Install k3s server on control plane
+  hosts: control_plane
+  become: true
+  gather_facts: true
+  serial: 1
+  roles:
+    - role: k3s_server
+      tags: [ k3s_bootstrap, server ]
+
+- name: Install k3s agents on workers
+  hosts: workers
+  become: true
+  gather_facts: true
+  serial: 1
+  roles:
+    - role: k3s_agent
+      tags: [ k3s_bootstrap, agent ]

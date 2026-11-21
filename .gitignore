@@ -1,0 +1,3 @@
+ansible/secrets/
+clean/
+__pycache__/

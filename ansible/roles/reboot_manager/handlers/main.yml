@@ -1,0 +1,7 @@
+---
+- name: reboot_host
+  reboot:
+    msg: "{{ reboot_message }}"
+    reboot_timeout: "{{ reboot_timeout_seconds }}"
+  # Other roles can trigger this handler with notify: "schedule_reboot".
+  listen: "schedule_reboot"

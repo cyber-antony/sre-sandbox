@@ -1,0 +1,5 @@
+---
+lab_vm_image_dir: "{{ site.images.directory }}"
+
+lab_directories:
+  - "{{ lab_vm_image_dir }}"

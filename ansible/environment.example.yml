@@ -1,0 +1,55 @@
+---
+# Copy to environment.yml and replace these example addresses with your own.
+site:
+  lab:
+    address: 10.20.0.2
+    lan_cidr: 10.20.0.0/24
+    uplink: enp1s0
+    bridge: br0
+  apt_proxy:
+    url: http://10.20.0.2:3142
+    # Bootstrap apt-cacher-ng on lab before configuring its clients.
+    # Use false only when an external proxy is already running at url.
+    manage_on_lab: true
+  images:
+    url: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
+    filename: ubuntu-24.04-server-cloudimg-amd64.img
+    directory: /srv/vm-images
+    mount: /mnt/vm-images
+    # False requires a preloaded image in directory on lab.
+    download: true
+  postgres:
+    directory: /srv/postgres
+  mainhost:
+    address: 10.20.0.8
+    memory_mb: 6656
+    vcpus: 4
+    disk_gb: 120
+    runtime_dir: /opt/sre-lab
+    # Optional: set your own VM MAC if your DHCP reservation needs it.
+    # mac: "02:00:00:00:00:08"
+  cluster:
+    cidr: 10.30.0.0/24
+    gateway: 10.30.0.254
+    bridge: brk3s
+    dns: [10.20.0.1]
+    # Each VM has one virtio NIC; MAC addresses are optional.
+    nodes:
+      - name: cc1
+        role: control_plane
+        ip: 10.30.0.11
+        vcpu: 2
+        memory_mb: 1500
+        disk_gb: 30
+      - name: wk1
+        role: worker
+        ip: 10.30.0.12
+        vcpu: 2
+        memory_mb: 1500
+        disk_gb: 30
+      - name: wk2
+        role: worker
+        ip: 10.30.0.13
+        vcpu: 2
+        memory_mb: 1500
+        disk_gb: 30

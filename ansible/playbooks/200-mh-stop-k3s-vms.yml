@@ -1,0 +1,10 @@
+---
+- name: Stop k3s VMs on mainhost
+  hosts: mainhosts
+  become: true
+  gather_facts: false
+  serial: 1
+
+  roles:
+    - role: mh_k3s_vm_stop
+      tags: [ mh_stop_k3s_vms ]

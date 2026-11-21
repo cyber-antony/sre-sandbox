@@ -1,0 +1,36 @@
+---
+- name: Install KVM and libvirt packages
+  ansible.builtin.apt:
+    name: "{{ kvm_host_packages }}"
+    state: present
+    update_cache: true
+  # Install the tools needed to create and run libvirt/KVM VMs.
+
+- name: Ensure libvirt sockets are enabled and running
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop:
+    - libvirtd.socket
+    - libvirtd-ro.socket
+    - libvirtd-admin.socket
+
+- name: Ensure current technical user is in libvirt group
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: libvirt
+    append: true
+  # Allow the technical user to manage libvirt without a root shell.
+
+- name: Check virtualization capability
+  ansible.builtin.command: kvm-ok
+  register: kvm_ok_result
+  changed_when: false
+  failed_when: false
+  # The kvm-ok diagnostic requires the cpu-checker package.
+
+- name: Show virtualization check result
+  ansible.builtin.debug:
+    var: kvm_ok_result.stdout_lines
+  when: kvm_ok_result.stdout_lines is defined

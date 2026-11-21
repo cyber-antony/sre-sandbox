@@ -1,0 +1,9 @@
+---
+- name: Remove mainhost from lab
+  hosts: labs
+  become: true
+  gather_facts: false
+
+  roles:
+    - role: lab_mainhost_destroy
+      tags: [ lab_clean_mainhost ]

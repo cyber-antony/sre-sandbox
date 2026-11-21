@@ -1,0 +1,29 @@
+---
+- name: Ensure VM image directory exists
+  ansible.builtin.file:
+    path: "{{ lab_vm_image_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Check whether Ubuntu cloud image already exists
+  ansible.builtin.stat:
+    path: "{{ lab_ubuntu_cloud_image_path }}"
+  register: lab_cloud_image_stat
+
+- name: Download Ubuntu cloud image to lab host
+  ansible.builtin.get_url:
+    url: "{{ lab_ubuntu_cloud_image_url }}"
+    dest: "{{ lab_ubuntu_cloud_image_path }}"
+    mode: "0644"
+    timeout: 120
+  when:
+    - site.images.download | default(true) | bool
+    - not lab_cloud_image_stat.stat.exists
+
+- name: Require a preloaded image when downloads are disabled
+  ansible.builtin.assert:
+    that: lab_cloud_image_stat.stat.exists
+    fail_msg: "Place the prepared qcow2 image at {{ lab_ubuntu_cloud_image_path }} first."
+  when: not (site.images.download | default(true) | bool)

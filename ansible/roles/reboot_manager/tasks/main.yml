@@ -1,0 +1,11 @@
+- name: Check if reboot-required exists
+  stat:
+    path: /run/reboot-required
+  register: system_reboot_required
+
+- name: Trigger reboot notification
+  set_fact:
+    reboot_triggered: true
+  changed_when: true
+  notify: "schedule_reboot"
+  when: system_reboot_required.stat.exists

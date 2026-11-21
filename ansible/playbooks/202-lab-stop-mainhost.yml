@@ -1,0 +1,9 @@
+---
+- name: Stop mainhost on lab
+  hosts: labs
+  become: true
+  gather_facts: false
+
+  roles:
+    - role: lab_mainhost_stop
+      tags: [ lab_stop_mainhost ]

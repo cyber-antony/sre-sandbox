@@ -1,0 +1,8 @@
+---
+k3s_server_version: ""
+k3s_server_disable:
+  - servicelb
+
+k3s_server_tls_sans:
+  - "{{ ansible_host }}"
+  - cc1

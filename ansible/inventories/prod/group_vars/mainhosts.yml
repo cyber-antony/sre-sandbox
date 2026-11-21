@@ -1,0 +1,4 @@
+---
+cluster_vm_gateway: "{{ site.cluster.gateway }}"
+cluster_vm_dns: "{{ site.cluster.dns }}"
+vms: "{{ site.cluster.nodes }}"

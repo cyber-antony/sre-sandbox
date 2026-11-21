@@ -1,0 +1,60 @@
+---
+- name: Check whether VMs already exist in libvirt
+  ansible.builtin.command:
+    cmd: "virsh dominfo {{ item.name }}"
+  register: virsh_dominfo
+  failed_when: false
+  changed_when: false
+  loop: "{{ vms }}"
+
+- name: Create VMs with virt-install
+  ansible.builtin.command:
+    cmd: >
+      virt-install --name {{ item.item.name }} --memory {{ item.item.memory_mb
+      }} --vcpus {{ item.item.vcpu }} --cpu host --import --disk path={{
+      vm_disk_dir }}/{{ item.item.name }}.qcow2,format=qcow2,bus=virtio
+      --network bridge={{ cluster_bridge_name }},model=virtio{{
+      ',mac=' ~ item.item.mac if item.item.mac is defined else '' }} --os-variant {{ vm_os_variant }} --graphics none
+      --noautoconsole --boot hd --serial pty --console pty,target_type=serial
+      --disk path={{ cloud_init_dir }}/{{ item.item.name
+      }}/seed.iso,device=cdrom
+    creates: "/etc/libvirt/qemu/{{ item.item.name }}.xml"
+  loop: "{{ virsh_dominfo.results }}"
+  when: item.rc != 0
+
+- name: Check whether k3s VM autostart is already enabled
+  # Check libvirt's autostart link to avoid reporting a change on every run.
+  ansible.builtin.stat:
+    path: "/etc/libvirt/qemu/autostart/{{ item.name }}.xml"
+  register: k3s_vm_autostart_stats
+  loop: "{{ vms }}"
+
+- name: Enable k3s VM autostart
+  ansible.builtin.command:
+    cmd: "virsh autostart {{ item.item.name }}"
+  loop: "{{ k3s_vm_autostart_stats.results }}"
+  when: not item.stat.exists
+
+- name: Check VM power state
+  ansible.builtin.command:
+    cmd: "virsh domstate {{ item.name }}"
+  register: vm_state_results
+  changed_when: false
+  loop: "{{ vms }}"
+
+- name: Start stopped VMs
+  ansible.builtin.command:
+    cmd: "virsh start {{ item.item.name }}"
+  loop: "{{ vm_state_results.results }}"
+  when: item.stdout is search('shut off')
+
+- name: Wait for SSH on VM addresses
+  ansible.builtin.wait_for:
+    host: "{{ item.ip }}"
+    port: 22
+    timeout: "{{ vm_wait_for_ssh_timeout }}"
+    delay: 5
+    sleep: 5
+    state: started
+  loop: "{{ vms }}"
+  become: false

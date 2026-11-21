@@ -1,0 +1,19 @@
+---
+# Base packages for administration and automation.
+common_host_packages:
+  - curl
+  - wget
+  - vim
+  - git
+  - rsync
+  - jq
+  - unzip
+  - bash-completion
+  - python3
+  - python3-pip
+  - acl
+  - mc
+  - screen
+
+apt_proxy_url: "{{ site.apt_proxy.url }}"
+apt_proxy_file: /etc/apt/apt.conf.d/01proxy

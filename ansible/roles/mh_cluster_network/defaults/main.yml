@@ -1,0 +1,7 @@
+---
+cluster_bridge_name: "{{ site.cluster.bridge }}"
+cluster_bridge_address_cidr: "{{ site.cluster.gateway }}/{{ site.cluster.cidr.split('/')[1] }}"
+
+# Keep the cluster bridge in a separate Netplan file.
+cluster_netplan_file: /etc/netplan/60-brk3s.yaml
+cluster_bridge_optional: true

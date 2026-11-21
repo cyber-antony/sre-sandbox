@@ -1,0 +1,42 @@
+---
+- name: Install NFS server packages
+  ansible.builtin.apt:
+    name: "{{ lab_nfs_server_packages }}"
+    state: present
+    update_cache: true
+
+- name: Ensure general NFS export directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ lab_nfs_general_directories }}"
+
+- name: Ensure postgres export directory has open lab permissions
+  # This role owns the PostgreSQL export permissions; keep other roles from changing them.
+  ansible.builtin.file:
+    path: "{{ site.postgres.directory }}"
+    state: directory
+    owner: nobody
+    group: nogroup
+    mode: "0777"
+
+- name: Configure /etc/exports
+  ansible.builtin.copy:
+    dest: /etc/exports
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      {% for item in lab_nfs_exports %}
+      {{ item.path }} {{ item.client }}({{ item.options }})
+      {% endfor %}
+  notify: Reload NFS exports
+
+- name: Ensure NFS server is enabled and running
+  ansible.builtin.systemd:
+    name: nfs-kernel-server
+    state: started
+    enabled: true

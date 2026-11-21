@@ -1,0 +1,17 @@
+---
+# Root directory for infrastructure data on mainhost.
+mh_root_dir: "{{ site.mainhost.runtime_dir }}"
+
+# Directories required on mainhost.
+mh_directories:
+  - "{{ mh_root_dir }}"
+  - "{{ mh_root_dir }}/cache"
+  - "{{ mh_root_dir }}/libvirt"
+  - "{{ mh_root_dir }}/libvirt/cloud-init"
+  - "{{ mh_root_dir }}/libvirt/templates"
+  - "{{ mh_root_dir }}/nfs"
+
+#  - "{{ mh_root_dir }}/cache/ubuntu-images"
+#  - "{{ mh_root_dir }}/cache/container-images"
+#  - "{{ mh_root_dir }}/registry"
+#  - "{{ mh_root_dir }}/repo"

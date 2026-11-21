@@ -1,0 +1,35 @@
+- name: Install NFS client packages
+  apt:
+    name: nfs-common
+    state: present
+    update_cache: true
+
+- name: Create mount point
+  file:
+    path: "{{ nfs_mount }}"
+    state: directory
+    mode: "0755"
+
+- name: Check NFS export is reachable
+  command: "showmount -e {{ nfs_server }}"
+  register: showmount_out
+  changed_when: false
+  failed_when: showmount_out.rc != 0
+
+- name: Mount NFS share
+  mount:
+    src: "{{ nfs_server }}:{{ nfs_export }}"
+    path: "{{ nfs_mount }}"
+    fstype: nfs
+    opts: "{{ nfs_opts }}"
+    state: mounted
+
+- name: Verify image exists
+  stat:
+    path: "{{ nfs_mount }}/{{ site.images.filename }}"
+  register: image_stat
+
+- name: Fail if base image not found
+  fail:
+    msg: "Base image not found in NFS share"
+  when: not image_stat.stat.exists

@@ -1,0 +1,5 @@
+---
+lab_mainhost_name: mainhost
+lab_mainhost_disk_path: /var/lib/libvirt/images/mainhost.qcow2
+lab_mainhost_seed_iso_path: /var/lib/libvirt/images/mainhost-seed.iso
+lab_mainhost_cloud_init_dir: /var/lib/libvirt/cloud-init/mainhost

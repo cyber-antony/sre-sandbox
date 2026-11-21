@@ -1,0 +1,4 @@
+---
+lab_root_dir: "{{ site.mainhost.runtime_dir }}"
+vm_disk_dir: "{{ lab_root_dir }}/libvirt/vm-disks"
+cloud_init_dir: "{{ lab_root_dir }}/libvirt/cloud-init"

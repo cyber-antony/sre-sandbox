@@ -1,0 +1,13 @@
+---
+kvm_host_packages:
+  - qemu-kvm
+  - qemu-utils
+  - libvirt-daemon-system
+  - libvirt-clients
+  - virtinst
+  - bridge-utils
+  - cloud-image-utils
+  - genisoimage
+  - guestfs-tools
+  - ovmf
+  - cpu-checker

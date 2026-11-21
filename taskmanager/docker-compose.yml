@@ -1,0 +1,49 @@
+volumes:
+  db_data: # Persistent database volume.
+
+networks:
+  tasknet: # Shared application network.
+    driver: bridge # Docker bridge network driver.
+
+services:
+  db: # PostgreSQL database.
+    image: postgres:16 # Official PostgreSQL image.
+    container_name: task-db # Database container name.
+    environment: # Database initialization settings.
+      POSTGRES_DB: ${DB_NAME:-taskdb} # Database name.
+      POSTGRES_USER: ${DB_USER:-taskuser} # Database user.
+      POSTGRES_PASSWORD: ${DB_PASS:-taskpass} # Database password.
+    volumes:
+      - db_data:/var/lib/postgresql/data # Persist data outside the container.
+    networks:
+      - tasknet # Attach the container to the application network.
+    restart: unless-stopped # Restart automatically unless explicitly stopped.
+
+  taskmanager: # Backend application.
+    build: ./app # Build the backend image from app/.
+    container_name: taskmanager # Backend container name.
+    environment: # Database connection settings.
+      DB_HOST: ${DB_HOST:-db} # Database service name on the Compose network.
+      DB_NAME: ${DB_NAME:-taskdb} # Database name.
+      DB_USER: ${DB_USER:-taskuser} # Database user.
+      DB_PASS: ${DB_PASS:-taskpass} # Database password.
+
+    depends_on:
+      - db # Start after the database container; readiness is handled by the app.
+    networks:
+      - tasknet # Join the application network.
+    restart: unless-stopped # Restart automatically unless explicitly stopped.
+
+  web: # nginx frontend server.
+    image: nginx:latest # Official nginx image.
+    container_name: task-web # Frontend container name.
+    ports:
+      - "8080:80" # Map host port 8080 to container port 80.
+    volumes:
+      - ./web/index.html:/usr/share/nginx/html/index.html:ro # Mount the HTML page read-only.
+      - ./web/nginx.conf:/etc/nginx/conf.d/default.conf:ro # Mount the nginx configuration read-only.
+    depends_on:
+      - taskmanager # Start after the backend container; this does not wait for readiness.
+    networks:
+      - tasknet # Join the application network.
+    restart: unless-stopped # Restart automatically unless explicitly stopped.

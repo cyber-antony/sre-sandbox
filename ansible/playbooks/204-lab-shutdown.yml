@@ -1,0 +1,11 @@
+- name: Shutdown physical lab host
+  hosts: labs
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Shutdown lab host
+      ansible.builtin.shell: shutdown -h now
+      async: 1
+      poll: 0
+      changed_when: true

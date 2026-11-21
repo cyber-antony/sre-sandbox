@@ -1,0 +1,8 @@
+---
+k3s_prereq_packages:
+  - curl
+  - nfs-common
+  - open-iscsi
+  - ca-certificates
+
+k3s_disable_swap: true

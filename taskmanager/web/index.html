@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager</title>
+</head>
+
+<body>
+  <h1>Task Manager</h1>
+
+
+  <!-- Input and button for adding tasks. -->
+  <input type="text" id="taskInput" placeholder="Neue Aufgabe eingeben">
+  <button onclick="addTask()">Add</button>
+
+
+  <!-- Render the task list here. -->
+  <ul id="taskList"></ul>
+
+
+  <script>
+    // Fetch tasks from the backend and render the list.
+    async function loadTasks() {
+      const response = await fetch('/api/tasks');
+      const tasks = await response.json();
+
+
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+
+
+      tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.textContent = task.title + ' ';
+
+
+        const btn = document.createElement('button');
+        btn.textContent = 'Delete';
+        btn.onclick = () => deleteTask(task.id);
+
+
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+
+
+    // Create a task and refresh the list.
+    async function addTask() {
+      const input = document.getElementById('taskInput');
+      const title = input.value.trim();
+
+
+      if (!title) return;
+
+
+      await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: title })
+      });
+
+
+      input.value = '';
+      loadTasks();
+    }
+
+
+    // Delete a task and refresh the list.
+    async function deleteTask(taskId) {
+      await fetch('/api/tasks/' + taskId, { method: 'DELETE' });
+      loadTasks();
+    }
+
+
+    // Load the current tasks when the page opens.
+    loadTasks();
+  </script>
+</body>
+
+</html>

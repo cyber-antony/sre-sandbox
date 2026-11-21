@@ -1,0 +1,40 @@
+---
+- name: Install bridge/network helper packages
+  ansible.builtin.apt:
+    name:
+      - bridge-utils
+    state: present
+    update_cache: true
+
+- name: Configure cluster bridge netplan
+  ansible.builtin.copy:
+    dest: "{{ cluster_netplan_file }}"
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        bridges:
+          {{ cluster_bridge_name }}:
+            interfaces: []
+            dhcp4: false
+            dhcp6: false
+            addresses:
+              - {{ cluster_bridge_address_cidr }}
+            optional: {{ cluster_bridge_optional | lower }}
+            parameters:
+              stp: false
+              forward-delay: 0
+    validate: "/usr/local/sbin/sre-validate-netplan %s"
+  notify: Apply netplan
+
+- name: Enable IPv4 forwarding
+  # Route traffic between the LAN and the internal cluster network on mainhost.
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present
+    sysctl_set: true
+    reload: true

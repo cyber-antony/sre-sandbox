@@ -1,0 +1,11 @@
+---
+lab_bridge_name: "{{ site.lab.bridge }}"
+lab_bridge_netplan_file: /etc/netplan/60-br0.yaml
+
+# Physical interface attached to the LAN bridge.
+lab_bridge_uplink_interface: "{{ site.lab.uplink }}"
+
+lab_bridge_use_dhcp: true
+
+lab_cluster_route_network: "{{ site.cluster.cidr }}"
+lab_cluster_route_via: "{{ site.mainhost.address }}"

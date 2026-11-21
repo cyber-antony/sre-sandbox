@@ -1,0 +1,58 @@
+---
+- name: Ensure cloud-init directory exists
+  ansible.builtin.file:
+    path: "{{ cloud_init_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create per-VM cloud-init directories
+  ansible.builtin.file:
+    path: "{{ cloud_init_dir }}/{{ item.name }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ vms }}"
+  # Keep each VM cloud-init configuration in its own directory.
+
+- name: Render user-data for VMs
+  ansible.builtin.template:
+    src: user-data.j2
+    dest: "{{ cloud_init_dir }}/{{ item.name }}/user-data"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ vms }}"
+
+- name: Render meta-data for VMs
+  ansible.builtin.template:
+    src: meta-data.j2
+    dest: "{{ cloud_init_dir }}/{{ item.name }}/meta-data"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ vms }}"
+
+- name: Render network-config for VMs
+  ansible.builtin.template:
+    src: network-config.j2
+    dest: "{{ cloud_init_dir }}/{{ item.name }}/network-config"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ vms }}"
+
+- name: Build cloud-init ISO for VMs
+  ansible.builtin.command:
+    cmd: >
+      cloud-localds
+      -v
+      --network-config={{ cloud_init_dir }}/{{ item.name }}/network-config
+      {{ cloud_init_dir }}/{{ item.name }}/seed.iso
+      {{ cloud_init_dir }}/{{ item.name }}/user-data
+      {{ cloud_init_dir }}/{{ item.name }}/meta-data
+    creates: "{{ cloud_init_dir }}/{{ item.name }}/seed.iso"
+  loop: "{{ vms }}"
+  # Create seed.iso once; remove it during reset to regenerate cloud-init data.

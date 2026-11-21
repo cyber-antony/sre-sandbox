@@ -1,0 +1,8 @@
+---
+lab_root_dir: "{{ site.mainhost.runtime_dir }}"
+cloud_init_dir: "{{ lab_root_dir }}/libvirt/cloud-init"
+vm_disk_dir: "{{ lab_root_dir }}/libvirt/vm-disks"
+cluster_bridge_name: "{{ site.cluster.bridge }}"
+vm_os_variant: ubuntu24.04
+vm_wait_for_ssh_timeout: 300
+vm_initial_user: ansik

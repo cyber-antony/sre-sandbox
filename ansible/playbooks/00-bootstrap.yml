@@ -1,0 +1,8 @@
+- name: Bootstrap managed hosts
+  hosts: lab
+  become: true
+  gather_facts: false
+
+  roles:
+    - role: bootstrap_user
+      tags: [ bootstrap ]
